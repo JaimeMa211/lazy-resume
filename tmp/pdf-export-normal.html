@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>PDF Export Normal</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 210mm;
+        height: 297mm;
+        background: #fff;
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      }
+
+      .page {
+        box-sizing: border-box;
+        width: 210mm;
+        height: 297mm;
+        padding: 18mm 16mm;
+        color: #111827;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+      }
+
+      p,
+      li {
+        font-size: 12px;
+        line-height: 1.7;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <h1>张三 Zhang San</h1>
+      <p>高级前端工程师 | React | Next.js | TypeScript</p>
+      <p>邮箱: zhangsan@example.com | 电话: 13800000000 | 上海</p>
+      <p>负责企业级招聘平台的前端架构设计与性能优化，推动核心页面加载时间下降 38%。</p>
+      <ul>
+        <li>主导简历编辑器重构，提升表单交互稳定性与可维护性。</li>
+        <li>搭建 PDF 导出链路，支持中文简历模板和 A4 单页排版。</li>
+        <li>与产品、设计和后端协作，优化投递转化率与 ATS 兼容性。</li>
+      </ul>
+    </main>
+  </body>
+</html>

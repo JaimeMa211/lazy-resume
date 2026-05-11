@@ -1,5 +1,6 @@
 import type { ResumeData } from "@/components/templates/types";
 import { buildTemplateSections, TemplateSectionPanel, TextResumeHeader } from "@/components/templates/TemplateBlocks";
+import { flattenProfessionalSkills } from "@/lib/resume-data";
 
 type StudentTemplateProps = {
   data: ResumeData;
@@ -7,7 +8,7 @@ type StudentTemplateProps = {
 
 export function StudentTemplate({ data }: StudentTemplateProps) {
   const sections = buildTemplateSections(data);
-  const accentSkills = data.skills.slice(0, 6);
+  const accentSkills = flattenProfessionalSkills(data).slice(0, 6);
 
   return (
     <article className="h-full bg-[#fffdfa] px-8 py-6 text-[10px] leading-[1.6] text-slate-800">

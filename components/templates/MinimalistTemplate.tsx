@@ -30,9 +30,24 @@ function renderSection(section: ResumeTemplateSection) {
     );
   }
 
+  if (section.type === "grouped-list") {
+    return (
+      <div className="space-y-2">
+        {section.groups.map((group) => (
+          <div key={group.label} className="border-b border-[#E0E8EC] pb-1 last:border-0">
+            <div className="grid grid-cols-[120px_1fr] gap-2 text-[11px]">
+              <p className="font-semibold text-[#2F3B45]">{group.label}</p>
+              <p className="leading-[1.6] text-[#445A67]">{group.items.join(" | ")}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
-      {section.entries.map((entry) => (
+      {section.entries.map((entry: { title: string; subtitle?: string; meta?: string; bullets?: string[] }) => (
         <div key={`${entry.title}-${entry.subtitle}-${entry.meta}`} className="border-b border-[#E0E8EC] pb-1 last:border-0">
           <div className="grid grid-cols-[120px_1fr_130px] gap-2 text-[11px] font-semibold">
             <p>{entry.meta || ""}</p>
@@ -41,7 +56,7 @@ function renderSection(section: ResumeTemplateSection) {
           </div>
           {entry.bullets && entry.bullets.length > 0 ? (
             <ul className="list-disc space-y-0.5 pl-4">
-              {entry.bullets.map((bullet) => (
+              {entry.bullets.map((bullet: string) => (
                 <li key={bullet}>{bullet}</li>
               ))}
             </ul>

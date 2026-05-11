@@ -82,6 +82,11 @@ export function SectionHeading({ title, titleClassName, ruleClassName, wrapperCl
   );
 }
 
+function isVerboseGroupedItem(item: string) {
+  const normalized = item.trim();
+  return normalized.length > 22 || /[,.;:()]/.test(normalized);
+}
+
 export function TemplateSectionContent({
   section,
   entryVariant = "default",
@@ -110,6 +115,58 @@ export function TemplateSectionContent({
           </li>
         ))}
       </ul>
+    );
+  }
+
+  if (section.type === "grouped-list") {
+    const hideGroupLabels = section.groups.length === 1;
+
+    return (
+      <div className={cn("space-y-2.5", entryWrapperClassName)}>
+        {section.groups.map((group) => {
+          const visibleItems = group.items.slice(0, listLimit);
+          const useBadgeLayout = visibleItems.every((item) => !isVerboseGroupedItem(item));
+
+          return (
+            <div key={group.label} className={entryClassName}>
+            {!hideGroupLabels ? (
+              <p className={cn("text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500", metaClassName)}>
+                {group.label}
+              </p>
+            ) : null}
+            {useBadgeLayout ? (
+              <div className={cn(hideGroupLabels ? "flex flex-wrap gap-1.5" : "mt-1.5 flex flex-wrap gap-1.5")}>
+                {visibleItems.map((item) => (
+                  <span
+                    key={item}
+                    className={cn(
+                      "rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-medium leading-[1.35] text-slate-700",
+                      textClassName,
+                    )}
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <ul
+                className={cn(
+                  hideGroupLabels ? "space-y-1.5" : "mt-1.5 space-y-1.5",
+                  listClassName,
+                )}
+              >
+                {visibleItems.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="mt-[0.45em] h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400" />
+                    <span className={cn("text-[10px] leading-[1.7] text-slate-700", textClassName)}>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            </div>
+          );
+        })}
+      </div>
     );
   }
 

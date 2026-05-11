@@ -30,6 +30,28 @@ function renderSection(section: ResumeTemplateSection) {
     );
   }
 
+  if (section.type === "grouped-list") {
+    const hideGroupLabels = section.groups.length === 1;
+
+    return (
+      <div className="space-y-2 pl-1">
+        {section.groups.map((group) => (
+          <div key={group.label}>
+            {!hideGroupLabels ? <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#4B6A79]">{group.label}</p> : null}
+            <ul className={hideGroupLabels ? "space-y-1.5" : "mt-1.5 space-y-1.5"}>
+              {group.items.slice(0, 10).map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <span className="mt-[0.45em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#7f96a3]" />
+                  <span className="text-[10px] leading-[1.7] text-[#505D67]">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   if (section.id === "awards") {
     return (
       <div className="space-y-1.5 pl-1">

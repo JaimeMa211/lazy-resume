@@ -8,6 +8,7 @@ import {
   FileStack,
   GraduationCap,
   Sparkle,
+  Layers3,
   Languages,
   Medal,
   PencilLine,
@@ -30,6 +31,7 @@ import type {
   Education,
   InternshipExperience,
   LanguageSkill,
+  ProfessionalSkillGroup,
   ProjectExperience,
   ResumeData,
   ResumeModuleId,
@@ -39,6 +41,7 @@ import type {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  buildProfessionalSkills,
   createEmptyResumeData,
   createStoredResumeDraft,
   createStarterResumeData,
@@ -60,6 +63,7 @@ type ProjectTextField = "name" | "role" | "duration";
 type AwardTextField = "name" | "issuer" | "date" | "detail";
 type CertificationTextField = "name" | "issuer" | "date";
 type LanguageTextField = "name" | "proficiency";
+type SkillGroupTextField = "category";
 type WorkspaceSectionId = ResumeModuleId;
 
 type SectionMeta = {
@@ -207,6 +211,13 @@ function createLanguageItem(): LanguageSkill {
   return {
     name: "",
     proficiency: "",
+  };
+}
+
+function createSkillGroupItem(): ProfessionalSkillGroup {
+  return {
+    category: "",
+    items: [],
   };
 }
 
@@ -505,6 +516,8 @@ function sectionIcon(moduleId: ResumeModuleId): typeof Sparkles {
       return UserRound;
     case "summary":
       return PencilLine;
+    case "skills":
+      return Layers3;
 
     case "education":
       return GraduationCap;
@@ -786,6 +799,31 @@ export default function ResumeCreatorWorkspace() {
     }));
   }
 
+  function updateSkills(value: string) {
+    const items = parseMultilineText(value);
+
+    setDraft((current) => ({
+      ...current,
+      skills: items.length > 0 ? [{ category: "核心技能", items }] : [],
+    }));
+  }
+
+  function updateSkillGroup(index: number, field: SkillGroupTextField, value: string) {
+    setDraft((current) => ({
+      ...current,
+      skills: current.skills.map((item, itemIndex) => (itemIndex === index ? { ...item, [field]: value } : item)),
+    }));
+  }
+
+  function updateSkillGroupItems(index: number, value: string) {
+    setDraft((current) => ({
+      ...current,
+      skills: current.skills.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, items: parseMultilineText(value) } : item,
+      ),
+    }));
+  }
+
   function switchPersona(persona: ResumePersona) {
     if (persona === draft.persona) {
       return;
@@ -879,6 +917,9 @@ export default function ResumeCreatorWorkspace() {
           break;
         case "summary":
           badge = draft.professional_summary.trim() ? "已填" : rule.required ? "必填" : "选填";
+          break;
+        case "skills":
+          badge = countBadge(rule.required, draft.skills.reduce((total, group) => total + group.items.length, 0), "项");
           break;
 
         case "education":
@@ -1008,6 +1049,29 @@ export default function ResumeCreatorWorkspace() {
       </SectionPanel>
     );
   }
+
+  function renderSkillsSection() {
+    const skillText = toMultilineText(buildProfessionalSkills(draft));
+
+    return (
+      <SectionPanel
+        eyebrow="Skills"
+        title="专业技能"
+        description="和项目亮点一样，按行填写技能项即可。建议优先保留和目标岗位直接相关的技术、工具或业务能力。"
+      >
+        <Field label="专业技能" hint="每行一个技能">
+          <Textarea
+            value={skillText}
+            onChange={(event) => updateSkills(event.target.value)}
+            rows={6}
+            className="min-h-28 rounded-2xl border-stone-300 bg-white px-4 py-3"
+            placeholder={"例如：TypeScript\nReact\nNext.js\nSQL"}
+          />
+        </Field>
+      </SectionPanel>
+    );
+  }
+
   function renderRoleExperienceSection(options: {
     eyebrow: string;
     title: string;
@@ -1409,6 +1473,8 @@ export default function ResumeCreatorWorkspace() {
         return renderProfileSection();
       case "summary":
         return renderSummarySection();
+      case "skills":
+        return renderSkillsSection();
       case "education":
         return renderEducationSection();
       case "internships":

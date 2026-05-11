@@ -46,6 +46,11 @@ export type LanguageSkill = {
   proficiency: string;
 };
 
+export type ProfessionalSkillGroup = {
+  category: string;
+  items: string[];
+};
+
 export type PersonalInfo = {
   name: string;
   headline?: string;
@@ -64,6 +69,7 @@ export type ResumePersona = "intern" | "graduate" | "experienced";
 export type ResumeModuleId =
   | "profile"
   | "summary"
+  | "skills"
   | "education"
   | "internships"
   | "campus"
@@ -76,7 +82,7 @@ export type ResumeData = {
   persona: ResumePersona;
   personal_info: PersonalInfo;
   professional_summary: string;
-  skills: string[];
+  skills: ProfessionalSkillGroup[];
   internships: InternshipExperience[];
   work_experience: WorkExperience[];
   education: Education[];

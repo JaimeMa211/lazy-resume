@@ -17,7 +17,8 @@ import { ModernTechTemplate } from "@/components/templates/ModernTechTemplate";
 import { AtsOptimizedTemplate } from "@/components/templates/AtsOptimizedTemplate";
 import { ProfessionalTemplate } from "@/components/templates/ProfessionalTemplate";
 import type { ResumeData, WorkExperience } from "@/components/templates/types";
-import { normalizeResumeData } from "@/lib/resume-data";
+import { buildMachineReadableResumeText, normalizeResumeData } from "@/lib/resume-data";
+import { PDF_MACHINE_READABLE_END, PDF_MACHINE_READABLE_START } from "@/lib/pdf-machine-readable";
 import { cn } from "@/lib/utils";
 
 type ResumeBuilderProps = {
@@ -52,6 +53,18 @@ const previewScaleSteps = [0.8, 0.9, 1, 1.1, 1.2, 1.35];
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = 1123;
 const PREVIEW_SAFE_PADDING_PX = 48;
+
+function encodeMachineReadableText(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+
+  for (let index = 0; index < bytes.length; index += 0x8000) {
+    const chunk = bytes.subarray(index, index + 0x8000);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return btoa(binary);
+}
 
 function renderTemplateNode(template: TemplateKey, data: ResumeData) {
   if (template === "ats-optimized") {
@@ -282,6 +295,7 @@ export const ResumeBuilder = forwardRef<ResumeBuilderHandle, ResumeBuilderProps>
     }
 
     const nextContentFitScale = syncContentFitScale();
+    const machineReadablePayload = encodeMachineReadableText(buildMachineReadableResumeText(normalizedData));
     const headMarkup = Array.from(document.head.querySelectorAll("style, link[rel='stylesheet']"))
       .map((node) => node.outerHTML)
       .join("\n");
@@ -340,11 +354,28 @@ export const ResumeBuilder = forwardRef<ResumeBuilderHandle, ResumeBuilderProps>
             .pdf-scale > * {
               margin: 0 !important;
             }
+
+            .pdf-machine-readable {
+              position: absolute;
+              inset: 0;
+              overflow: hidden;
+              white-space: pre-wrap;
+              word-break: break-all;
+              font-size: 1px;
+              line-height: 1;
+              color: transparent;
+              opacity: 0.01;
+              pointer-events: none;
+              user-select: text;
+            }
           </style>
         </head>
         <body>
           <div class="pdf-shell">
             <div class="pdf-scale">${sourceNode.innerHTML}</div>
+            <div class="pdf-machine-readable">${PDF_MACHINE_READABLE_START}
+${machineReadablePayload}
+${PDF_MACHINE_READABLE_END}</div>
           </div>
         </body>
       </html>
@@ -420,7 +451,7 @@ export const ResumeBuilder = forwardRef<ResumeBuilderHandle, ResumeBuilderProps>
     }
 
     iframe.addEventListener("load", triggerPrint, { once: true });
-  }, [preparePrintViewport, syncContentFitScale]);
+  }, [normalizedData, preparePrintViewport, syncContentFitScale]);
 
   const effectivePreviewScale = fitWidthScale * previewScale;
   const canZoomOut = previewScale > previewScaleSteps[0];

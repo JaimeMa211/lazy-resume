@@ -103,7 +103,12 @@ function buildTemplateResumeData(previewData: ResumePreviewData, profileData: Ex
       contact: profileData.contact,
     },
     professional_summary: previewData.professionalSummary,
-    skills: previewData.skills.length > 0 ? previewData.skills : ["技能待补充"],
+    skills: [
+      {
+        category: "核心技能",
+        items: previewData.skills.length > 0 ? previewData.skills : ["技能待补充"],
+      },
+    ],
     internships: [],
     work_experience: previewData.workExperience.map((item) => ({
       company: item.company,
