@@ -8,7 +8,6 @@ import {
   subscribeAuthChange,
   type AuthSession,
 } from "@/lib/auth-client";
-import { verifyRedeemCode } from "@/lib/redeem-codes";
 import { cn } from "@/lib/utils";
 
 type RedeemCodeDialogProps = {
@@ -16,19 +15,26 @@ type RedeemCodeDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
+type RedeemCodeResponse = {
+  error?: string;
+  plan?: "monthly" | "yearly" | "buyout";
+  description?: string;
+};
+
 export default function RedeemCodeDialog({ open, onOpenChange }: RedeemCodeDialogProps) {
   const [session, setSession] = useState<AuthSession | null>(null);
-
-  useEffect(() => {
-    return subscribeAuthChange(() => {
-      setSession(getCurrentSession());
-    });
-  }, []);
-
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setSession(getCurrentSession());
+
+    return subscribeAuthChange(() => {
+      setSession(getCurrentSession());
+    });
+  }, []);
 
   const handleRedeem = async () => {
     if (!session) {
@@ -43,24 +49,36 @@ export default function RedeemCodeDialog({ open, onOpenChange }: RedeemCodeDialo
 
     setLoading(true);
     setError("");
+    setSuccess("");
 
-    await new Promise((r) => setTimeout(r, 300));
+    try {
+      const response = await fetch("/api/redeem-code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code }),
+      });
 
-    const entry = verifyRedeemCode(code);
-    if (!entry) {
-      setError("兑换码无效，请检查后重试");
-      setLoading(false);
-      return;
-    }
+      const payload = (await response.json().catch(() => null)) as RedeemCodeResponse | null;
+      if (!response.ok || !payload?.plan || !payload.description) {
+        setError(payload?.error ?? "兑换失败，请稍后重试");
+        return;
+      }
 
-    const result = await setCurrentPlan(entry.plan);
-    if (result) {
-      setSuccess(`兑换成功！您已成为 ${entry.description} 用户`);
+      const result = await setCurrentPlan(payload.plan);
+      if (!result) {
+        setError("兑换失败，请稍后重试");
+        return;
+      }
+
+      setSuccess(`兑换成功，您已升级为 ${payload.description}`);
       setTimeout(() => {
         onOpenChange(false);
       }, 1500);
-    } else {
+    } catch {
       setError("兑换失败，请稍后重试");
+    } finally {
       setLoading(false);
     }
   };
@@ -80,6 +98,7 @@ export default function RedeemCodeDialog({ open, onOpenChange }: RedeemCodeDialo
           onChange={(e) => {
             setCode(e.target.value.toUpperCase());
             setError("");
+            setSuccess("");
           }}
           placeholder="请输入兑换码"
           className={cn(
